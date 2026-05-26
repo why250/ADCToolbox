@@ -6,8 +6,8 @@ This example compares two spectrum averaging methods across multiple runs:
 1. Power Spectrum Averaging (Magnitude Averaging) - Top Row:
    - Averages FFT magnitudes (|FFT|²) across runs
    - Phase information is discarded
-   - Reduces noise floor by √N_runs (e.g., 10 runs → ~5dB, 100 runs → ~10dB)
-   - Simple and effective for general noise floor reduction
+   - Does NOT reduce noise floor level or improve SNR (mean noise power unchanged)
+   - Only smooths the noise floor visually (reduces variance by 1/N_runs)
 
 2. Coherent Spectrum Averaging (Complex Averaging) - Bottom Row:
    - Aligns phases across runs before averaging complex FFT values
