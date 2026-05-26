@@ -5,8 +5,9 @@ This example demonstrates two key spectrum analysis parameters:
 
 1. FFT Length (N) - Top Row:
    - Controls frequency resolution (bin width = Fs/N)
-   - Affects noise floor per bin (NSD decreases with √N)
-   - Longer FFT → finer resolution, lower noise floor per bin
+   - Longer FFT → finer bin width, lower noise floor per bin (dBFS)
+   - NSD (dBFS/Hz) stays CONSTANT with N for white noise:
+       noise_per_bin ∝ 1/N, bin_width ∝ 1/N → NSD = noise_per_bin/bin_width = const
    - Trade-off: Computation time and memory
 
 2. Oversampling Ratio (OSR) - Bottom Row:
@@ -16,7 +17,7 @@ This example demonstrates two key spectrum analysis parameters:
    - Essential for Delta-Sigma ADCs and narrowband applications
 
 Key Insights:
-- FFT length: Improves frequency resolution without changing SNR
+- FFT length: Improves frequency resolution and per-bin noise floor, but NOT SNR or NSD
 - OSR: Directly improves SNR by narrowing analysis bandwidth
 """
 
@@ -131,7 +132,8 @@ print("SUMMARY: FFT Length vs OSR")
 print("=" * 80)
 print("1. FFT Length (N):")
 print("   - Increases frequency resolution (bin width = Fs/N)")
-print("   - Lowers noise floor per bin (NSD improves)")
+print("   - Lowers noise floor per bin (dBFS), but NOT NSD (dBFS/Hz)")
+print("   - NSD is constant: noise_per_bin ∝ 1/N cancels bin_width ∝ 1/N")
 print("   - Does NOT improve SNR (noise bandwidth unchanged)")
 print("   - Use case: Resolve closely spaced frequency components")
 print()
