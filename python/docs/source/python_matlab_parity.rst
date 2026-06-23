@@ -5,7 +5,7 @@ This page tracks the functional parity between the Python ``adctoolbox`` package
 and the original MATLAB implementation. The goal is to keep both versions
 feature-equivalent.
 
-Last updated: 2026-03-10
+Last updated: 2026-06-07
 
 Function Mapping
 ----------------
@@ -58,7 +58,7 @@ only the current MATLAB name is listed.
      - ``analyze_weight_radix``
      - Matched
    * - ``ntfperf``
-     - ``ntf_analyzer``
+     - ``ntfperf`` / ``ntf_analyzer``
      - Matched
    * - ``adcpanel``
      - ``toolset/generate_aout_dashboard``, ``toolset/generate_dout_dashboard``
@@ -67,11 +67,11 @@ only the current MATLAB name is listed.
      - *not implemented*
      - **MATLAB only**
    * - ``ifilter``
-     - *not implemented*
-     - **MATLAB only**
+     - ``ifilter`` / ``extract_freq_components``
+     - Matched
    * - ``perfosr``
-     - *not implemented*
-     - **MATLAB only**
+     - ``perfosr`` / ``sweep_performance_vs_osr``
+     - Matched
    * - ``plotres``
      - *not implemented*
      - **MATLAB only**
@@ -79,26 +79,37 @@ only the current MATLAB name is listed.
 MATLAB-Only Functions
 ---------------------
 
-The following four MATLAB functions have **no Python equivalent** yet:
+The following two MATLAB functions have **no Python equivalent** yet:
 
 ``cdacwgt(cd, cb, cp)``
    Calculate bit weights for a multi-segment capacitive DAC (CDAC) with bridge
    capacitors and parasitic capacitances. Returns normalized weights and total
    capacitance.
 
-``ifilter(sigin, passband)``
-   Ideal FFT-based brickwall filter. Retains only the specified frequency bands
-   from an input signal. Operates column-wise on matrices.
-
-``perfosr(sig, ...)``
-   Sweep ADC performance (SNDR, SFDR, ENOB) versus oversampling ratio (OSR).
-   Separates ideal signal from error via sine fitting, then re-evaluates metrics
-   at narrowing bandwidths.
-
 ``plotres(sig, bits, ...)``
    Plot partial-sum residuals of an ADC bit matrix. Scatter-plots residuals
    between bit stages to reveal correlations, nonlinearity patterns, and
    redundancy.
+
+Oversampling Compatibility
+--------------------------
+
+The MATLAB oversampling analysis helpers are available from
+``adctoolbox.oversampling``:
+
+``ifilter(sigin, passband)``
+   Ideal FFT-based brickwall filter. Retains only the specified normalized
+   frequency bands from an input signal. Operates column-wise on matrices and
+   follows the MATLAB orientation rule for wide inputs.
+
+``perfosr(sig, ...)``
+   Sweep ADC performance (SNDR, SFDR, ENOB) versus oversampling ratio (OSR).
+   Returns MATLAB-style outputs ``osr, sndr, sfdr, enob`` while sharing the
+   same calculation engine as ``sweep_performance_vs_osr``.
+
+``ntfperf(ntf, fl, fh, disp=False)``
+   MATLAB-style wrapper around ``ntf_analyzer`` for theoretical NTF in-band
+   noise suppression.
 
 Python-Only Functions
 ---------------------
@@ -123,6 +134,27 @@ Digital Output Analysis
 - ``analyze_bit_activity`` — Percentage of 1's per bit (DC offset / clipping
   detection).
 - ``analyze_enob_sweep`` — ENOB vs. number of calibration bits.
+- ``plot_residual_scatter`` — Partial-sum residual visualization.
+
+ADC Behavioral Models
+^^^^^^^^^^^^^^^^^^^^^
+
+- ``sar_convert`` / ``sar_reconstruct`` — SAR forward conversion and analog
+  reconstruction.
+- ``sar_ideal_weights`` — Ideal binary or redundant SAR weights.
+- ``sar_apply_cap_mismatch`` — Unit-cap/Pelgrom-style CDAC mismatch model.
+- ``sar_apply_mismatch`` — Legacy per-weight gaussian perturbation helper.
+
+Time-Interleaved ADC Analysis
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``deinterleave`` / ``interleave`` — Split and recombine interleaved samples.
+- ``extract_mismatch_sine`` — Estimate channel gain, offset, and timing skew
+  from a sine capture.
+- ``predict_spurs`` — Predict mismatch spur locations and amplitudes.
+- ``fractional_delay_fft`` / ``fractional_delay_farrow`` — Fractional-delay
+  correction primitives.
+- ``calibrate_foreground`` — Foreground offset/gain/skew correction.
 
 Unit Conversions & Metrics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -174,13 +206,16 @@ Summary
      - —
    * - Python-only
      - —
-     - 29
+     - 41
    * - Signal generation module
      - No
      - Yes (``siggen``)
    * - Unit conversion utilities
      - No (inline)
      - Yes (20 functions)
-   * - Two-tone analysis
+   * - SAR behavioral models
+     - No
+     - Yes
+   * - Time-interleaved ADC tools
      - No
      - Yes

@@ -42,7 +42,7 @@ if isempty(p.Results.PlotFiles)
         fullfile(outputDir, sprintf('%s_3_plotphase.png', p.Results.Prefix));
         fullfile(outputDir, sprintf('%s_4_errsin_code.png', p.Results.Prefix));
         fullfile(outputDir, sprintf('%s_5_errsin_phase.png', p.Results.Prefix));
-        fullfile(outputDir, sprintf('%s_6_errPDF.png', p.Results.Prefix));
+        fullfile(outputDir, sprintf('%s_6_errpdf.png', p.Results.Prefix));
         fullfile(outputDir, sprintf('%s_7_errAutoCorrelation.png', p.Results.Prefix));
         fullfile(outputDir, sprintf('%s_8_errSpectrum.png', p.Results.Prefix));
         fullfile(outputDir, sprintf('%s_9_errEnvelopeSpectrum.png', p.Results.Prefix));
@@ -57,8 +57,8 @@ end
 
 fprintf('[Panel]');
 try
-    plotLabels = {'(1) tomDecomp'; '(2) specPlot'; '(3) specPlotPhase'; ...
-        '(4) errHistSine (code)'; '(5) errHistSine (phase)'; '(6) errPDF'; ...
+    plotLabels = {'(1) tomdec'; '(2) plotspec'; '(3) plotphase'; ...
+        '(4) errsin (code)'; '(5) errsin (phase)'; '(6) errpdf'; ...
         '(7) errAutoCorrelation'; '(8) errSpectrum'; '(9) errEnvelopeSpectrum'};
 
     visOpts = {'off', 'on'};

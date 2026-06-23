@@ -16,7 +16,6 @@ on a different coherent sine.
 from __future__ import annotations
 
 import contextlib
-import csv
 import io
 from pathlib import Path
 
@@ -101,26 +100,6 @@ def analyze_trace(trace: np.ndarray, ax=None, title: str | None = None) -> dict:
     return metrics
 
 
-def write_csv(path: Path, rows: list[dict]) -> None:
-    fieldnames = [
-        "architecture",
-        "msb_delta_pct",
-        "n_weights",
-        "nominal_sum_int",
-        "first_decision_margin_lsb",
-        "before_enob",
-        "after_enob",
-        "ideal_actual_weight_enob",
-        "before_sndr",
-        "after_sndr",
-        "ideal_actual_weight_sndr",
-    ]
-    with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
 def main() -> None:
     n = np.arange(N_SAMPLES)
     vin_train = 0.5 + AMPLITUDE * np.sin(2 * np.pi * TRAIN_BIN * n / N_SAMPLES)
@@ -187,13 +166,10 @@ def main() -> None:
     )
 
     fig_path = output_dir / "exp_d17_sar_msb_error_binary_vs_repeat_calibration.png"
-    csv_path = output_dir / "exp_d17_sar_msb_error_binary_vs_repeat_calibration.csv"
     fig.savefig(fig_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
-    write_csv(csv_path, rows)
 
     print(f"[Save fig] -> [{fig_path}]")
-    print(f"[Save CSV] -> [{csv_path}]")
     print("architecture,first_margin_lsb,before_ENOB,after_ENOB,ideal_actual_ENOB")
     for row in rows:
         print(

@@ -10,8 +10,8 @@ for k = 1:length(filesList)
     read_data = readmatrix(dataFilePath);
     [~, datasetName, ~] = fileparts(currentFilename);
 
-    % Run wcalsine to get calibrated weights
-    [weight_cal, ~, ~, ~, ~, ~] = wcalsine(read_data, 'freq', 0, 'order', 5);
+    % Run wcalsin to get calibrated weights
+    [weight_cal, ~, ~, ~, ~, ~] = wcalsin(read_data, 'freq', 0, 'order', 5);
     figure('Position', [100, 100, 800, 600], "Visible", verbose);
     radix = weightScaling(weight_cal);
 

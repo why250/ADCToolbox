@@ -8,14 +8,28 @@ import matplotlib.pyplot as plt
 from adctoolbox import plot_residual_scatter
 
 
-def _make_adc_data(n=1024, m=6, seed=42):
+def _make_adc_data(n=1024, m=6):
     """Generate simple ADC signal and bit matrix for testing."""
-    np.random.seed(seed)
     t = np.arange(n)
     sig = (np.sin(2 * np.pi * 3 * t / n) / 2 + 0.5) * (2**m - 1)
     code = np.clip(np.round(sig).astype(int), 0, 2**m - 1)
     bits = np.array([list(map(int, format(c, f'0{m}b'))) for c in code], dtype=float)
     return sig, bits
+
+
+def _visible_axes(fig):
+    return [ax for ax in fig.axes if ax.get_visible()]
+
+
+def _hidden_axes(fig):
+    return [ax for ax in fig.axes if not ax.get_visible()]
+
+
+def _assert_scatter_axis(ax, *, n_points, xlabel, ylabel):
+    assert ax.get_xlabel() == xlabel
+    assert ax.get_ylabel() == ylabel
+    assert len(ax.collections) == 1
+    assert ax.collections[0].get_offsets().shape == (n_points, 2)
 
 
 def test_basic_output():
@@ -82,9 +96,43 @@ def test_residual_stage_zero():
 
 
 def test_plot_creation():
-    """Plot creates without error."""
+    """Plot creates one scatter axis per requested pair."""
     sig, bits = _make_adc_data()
-    result = plot_residual_scatter(sig, bits, pairs=[(0, 6), (3, 6)],
-                                   create_plot=True)
-    assert result is not None
-    plt.close('all')
+    pairs = [(0, 6), (3, 6)]
+    result = plot_residual_scatter(sig, bits, pairs=pairs, create_plot=True)
+    fig = plt.gcf()
+    visible_axes = _visible_axes(fig)
+
+    assert result['pairs'] == pairs
+    assert len(fig.axes) == 2
+    assert len(visible_axes) == len(pairs)
+    _assert_scatter_axis(
+        visible_axes[0],
+        n_points=len(sig),
+        xlabel='Signal',
+        ylabel='Res. of bit #6',
+    )
+    _assert_scatter_axis(
+        visible_axes[1],
+        n_points=len(sig),
+        xlabel='Res. of bit #3',
+        ylabel='Res. of bit #6',
+    )
+    plt.close(fig)
+
+
+def test_plot_creation_hides_unused_subplots():
+    """Unused axes in the subplot grid should be hidden."""
+    sig, bits = _make_adc_data(n=128)
+    pairs = [(0, 6), (1, 6), (2, 6), (3, 6), (4, 6)]
+    result = plot_residual_scatter(sig, bits, pairs=pairs, create_plot=True)
+    fig = plt.gcf()
+
+    assert result['pairs'] == pairs
+    assert len(fig.axes) == 8
+    assert len(_visible_axes(fig)) == len(pairs)
+    assert len(_hidden_axes(fig)) == 3
+    for ax in _visible_axes(fig):
+        assert len(ax.collections) == 1
+        assert ax.collections[0].get_offsets().shape == (len(sig), 2)
+    plt.close(fig)

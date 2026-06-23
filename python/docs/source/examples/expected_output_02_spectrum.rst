@@ -1,25 +1,26 @@
 Expected Output: 02_spectrum
 ==================================
 
-This document shows the expected console output and example figures from all examples in `python/src/adctoolbox/examples/02_spectrum/`.
+This document shows selected expected console output and example figures from
+`python/src/adctoolbox/examples/02_spectrum/`.
 
 Summary
 -------
 
 All examples in `02_spectrum` demonstrate spectrum analysis capabilities:
 
-1. **exp_s01-s03**: Basic spectrum analysis (simplest, interactive, save figure)
-2. **exp_s04**: Dynamic range sweep
-3. **exp_s05**: Harmonic spur annotation
-4. **exp_s06**: FFT length and OSR sweep
-5. **exp_s07**: Power vs coherent averaging
-6. **exp_s08**: Windowing functions comparison (Kaiser, Blackman-Harris, Hann, Hamming)
-7. **exp_s10**: Polar spectrum - thermal noise vs harmonic distortion
-8. **exp_s11**: Polar spectrum - static nonlinearity vs memory effect
-9. **exp_s12**: Polar spectrum - coherent averaging improvement
-10. **exp_s21**: Two-tone spectrum analysis with IMD products
-11. **exp_s22**: Two-tone IMD comparison (weak vs strong nonlinearity)
-12. **exp_s23**: Two-tone coherent averaging
+1. **exp_s00**: FFT fundamentals for even/odd record lengths
+2. **exp_s01-s03**: Basic spectrum analysis (simplest, interactive, save figure)
+3. **exp_s04**: Dynamic range sweep
+4. **exp_s05**: Harmonic spur annotation
+5. **exp_s06**: FFT length and OSR sweep
+6. **exp_s07**: Power vs coherent averaging
+7. **exp_s08**: Windowing functions comparison (Kaiser, Blackman-Harris, Hann, Hamming)
+8. **exp_s09**: SAR near-Nyquist FFT-length edge cases
+9. **exp_s10**: Cartesian and polar spectrum comparison
+10. **exp_s11**: Polar spectrum - static nonlinearity vs memory effect
+11. **exp_s12**: Polar spectrum - coherent averaging improvement
+12. **exp_s13**: FFT-length Monte Carlo sweep for SFDR/SNDR
 
 **Total Examples**: 14
 
@@ -356,37 +357,22 @@ exp_s08_windowing_deep_dive.py
    Comparing spectral leakage across different window functions
 
 
-exp_s10_polar_noise_and_harmonics.py
-------------------------------------
+exp_s10_cartesian_and_polar_plot.py
+-----------------------------------
 
-**Description**: Polar plot comparison of thermal noise vs harmonic distortion.
+**Description**: Compare standard Cartesian spectrum plots with polar spectrum visualization.
 
 .. code-block:: none
 
-   [Sinewave] Fs=[800.00 MHz], Fin=[79.98 MHz], Bin/N=[819/8192], A=[0.490 Vpeak]
-   
+   [Sinewave] Fs=[800.00 MHz], Fin=[59.96 MHz], Bin/N=[614/8192], A=[0.490 Vpeak]
+
    ================================================================================
-   LEFT: THERMAL NOISE (2 mVrms)
+   STATIC NONLINEARITY: HARMONIC DISTORTION (HD2=-80dB, HD3=-50dB, k3<0)
    ================================================================================
-   [2 mVrms] SNR=44.8dB → Measured: ENoB=7.13b, SNR=44.72dB
-   
-   ================================================================================
-   RIGHT: HARMONIC DISTORTION (HD2=-80dB, HD3=-50dB, k3<0)
-   ================================================================================
-   [HD2=-80dB, HD3=-50dB, k3<0] SNDR=49.07dB, THD=-49.87dB, HD2=-81.22dB, HD3=-49.87dB
-   
-   
-   [Save fig] -> [D:\ADCToolbox\python\src\adctoolbox\examples\02_spectrum\output\exp_s10_polar_noise_and_harmonics.png]
+   [Cartesian Plot] SNDR=49.0dB, THD=-50.0dB, HD2=-80.0dB, HD3=-50.0dB
+   [Polar Plot] SNDR=49.0dB, THD=-50.0dB, HD2=-80.0dB, HD3=-50.0dB
 
-
-
-
-.. figure:: figures/exp_s10_polar_noise_and_harmonics.png
-   :alt: Polar spectrum - noise vs harmonics
-   :align: center
-   :width: 600px
-
-   Polar spectrum comparing thermal noise and harmonic distortion
+   [Save fig] -> [D:\ADCToolbox\python\src\adctoolbox\examples\02_spectrum\output\exp_s10_cartesian_and_polar_plot.png]
 
 
 exp_s11_polar_memory_effect.py
@@ -447,3 +433,30 @@ exp_s12_polar_coherent_averaging.py
    :width: 600px
 
    Polar spectrum demonstrating coherent averaging improvement
+
+
+exp_s13_fft_length_mc_sfdr_sndr.py
+----------------------------------
+
+**Description**: FFT-length Monte Carlo sweep for SFDR and SNDR with a fixed -80 dBc HD3 spur.
+
+.. code-block:: none
+
+   FFT LENGTH MONTE CARLO SWEEP: 10-bit ADC, ENOB=9 noise, HD3=-80 dBc
+   Monte Carlo runs per FFT length: 100
+   Input noise RMS: 0.000475683 FS units
+   HD3 amplitude: 4.9e-05 FS units (-80.0 dBc)
+
+   N=    16, bin=    3, SFDR= 62.24 +/-  3.59 dBc, SNDR= 60.92 +/-  3.49 dBc
+   N=    32, bin=    5, SFDR= 61.80 +/-  1.78 dBc, SNDR= 57.43 +/-  1.61 dBc
+   N=    64, bin=    9, SFDR= 63.78 +/-  1.49 dBc, SNDR= 56.73 +/-  1.02 dBc
+   N=   128, bin=   17, SFDR= 65.85 +/-  1.32 dBc, SNDR= 56.31 +/-  0.78 dBc
+   N=   256, bin=   31, SFDR= 68.16 +/-  1.28 dBc, SNDR= 56.13 +/-  0.55 dBc
+   N=   512, bin=   63, SFDR= 70.61 +/-  1.06 dBc, SNDR= 56.01 +/-  0.36 dBc
+   N=  1024, bin=  127, SFDR= 73.09 +/-  0.67 dBc, SNDR= 55.95 +/-  0.29 dBc
+   N=  2048, bin=  253, SFDR= 75.60 +/-  0.66 dBc, SNDR= 55.95 +/-  0.18 dBc
+   N=  4096, bin=  505, SFDR= 77.81 +/-  0.92 dBc, SNDR= 55.91 +/-  0.11 dBc
+   N=  8192, bin= 1009, SFDR= 79.46 +/-  1.41 dBc, SNDR= 55.94 +/-  0.09 dBc
+   N= 16384, bin= 2015, SFDR= 80.07 +/-  1.22 dBc, SNDR= 55.92 +/-  0.06 dBc
+   N= 32768, bin= 4031, SFDR= 79.82 +/-  0.96 dBc, SNDR= 55.92 +/-  0.04 dBc
+   N= 65536, bin= 8061, SFDR= 80.10 +/-  0.70 dBc, SNDR= 55.93 +/-  0.03 dBc

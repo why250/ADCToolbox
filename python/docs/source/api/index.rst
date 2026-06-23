@@ -10,7 +10,9 @@ This section provides detailed documentation for all ADCToolbox modules and func
    spectrum
    aout
    dout
+   models
    siggen
+   timeinterleave
    oversampling
    toolset
 
@@ -21,7 +23,7 @@ Module Overview
     Fundamental utilities including sine fitting, frequency calculation, unit conversion, FOM metrics, and validation
 
 :doc:`spectrum`
-    Spectrum analysis tools for FFT-based metrics, polar plots, and two-tone analysis
+    Spectrum analysis tools for FFT-based single-tone metrics, polar plots, and OSR sweeps
 
 :doc:`aout`
     Analog output analysis tools for INL/DNL, harmonic decomposition, and error characterization
@@ -29,8 +31,14 @@ Module Overview
 :doc:`dout`
     Digital output analysis tools for bit weight calibration, overflow detection, and ENOB analysis
 
+:doc:`models`
+    ADC behavioral models, including SAR conversion, reconstruction, ideal weights, and capacitor mismatch
+
 :doc:`siggen`
     Signal generation utilities for test signal creation with various non-idealities
+
+:doc:`timeinterleave`
+    Time-interleaved ADC deinterleaving, mismatch extraction, spur prediction, and foreground calibration
 
 :doc:`oversampling`
     Oversampling and Delta-Sigma modulator analysis tools

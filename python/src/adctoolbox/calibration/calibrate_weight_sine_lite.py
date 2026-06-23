@@ -11,6 +11,11 @@ def calibrate_weight_sine_lite(
     Minimal calibration at known frequency. Returns normalized weights.
     Expects well-conditioned binary data (N samples x M bits).
     """
+    if freq is not None and freq > 0.5:
+        raise ValueError(
+            f"freq must be normalized Fin/Fs (Nyquist range [0, 0.5]); got {freq}. "
+            f"If you have Fin in Hz, pass freq=Fin/Fs instead."
+        )
     n_samples, bit_width = bits.shape
 
     # Build fundamental basis

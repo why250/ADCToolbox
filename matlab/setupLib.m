@@ -1,3 +1,4 @@
 % only need to run this once
-addpath(genpath([pwd,'\src']));
+rootDir = fileparts(mfilename('fullpath'));
+addpath(genpath(fullfile(rootDir, 'src')));
 savepath;

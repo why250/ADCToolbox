@@ -17,8 +17,8 @@ for k = 1:length(filesList)
     % Pre-calibration: Convert using nominal weights
     preCal = read_data * nomWeight;
 
-    % Run wcalsine (foreground calibration)
-    [weight, offset, postCal, ideal, err, freqCal] = wcalsine(read_data, 'freq', 0, 'order', 5);
+    % Run wcalsin (foreground calibration)
+    [weight, offset, postCal, ideal, err, freqCal] = wcalsin(read_data, 'freq', 0, 'order', 5);
 
     % Plot spectrum before calibration
     figure('Position', [100, 100, 800, 600], "Visible", verbose);

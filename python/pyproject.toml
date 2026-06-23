@@ -7,7 +7,7 @@ name = "adctoolbox"
 dynamic = ["version"]
 description = "ADC Testing and Analysis Toolkit"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.23.0",
@@ -37,7 +37,6 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"adctoolbox.examples.data" = ["*.csv"]
 "adctoolbox.examples" = ["*.md"]
 "adctoolbox._bundled_skills" = [
     "skills/*/SKILL.md",
@@ -47,3 +46,9 @@ where = ["src"]
 
 [tool.setuptools.dynamic]
 version = {attr = "adctoolbox.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "-m 'not slow'"
+markers = [
+    "slow: broad exploratory sweeps for diagnostics; excluded from the default regression run",
+]

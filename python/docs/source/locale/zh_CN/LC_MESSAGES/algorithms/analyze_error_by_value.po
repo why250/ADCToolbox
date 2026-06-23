@@ -29,9 +29,9 @@ msgstr ""
 
 #: ../../source/algorithms/analyze_error_by_value.md:5
 msgid ""
-"`analyze_error_by_value` rearranges ADC errors by their corresponding "
-"output codes, revealing code-dependent patterns like DNL-related errors, "
-"missing codes, and systematic nonlinearity."
+"`analyze_error_by_value` rearranges ADC errors by their corresponding output "
+"codes, revealing code-dependent patterns like DNL-related errors, missing "
+"codes, and systematic nonlinearity."
 msgstr ""
 
 #: ../../source/algorithms/analyze_error_by_value.md:7
@@ -119,4 +119,3 @@ msgid ""
 "IEEE Std 1241-2010, \"IEEE Standard for Terminology and Test Methods for "
 "ADCs\""
 msgstr ""
-

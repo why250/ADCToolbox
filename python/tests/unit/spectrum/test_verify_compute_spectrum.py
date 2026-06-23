@@ -4,6 +4,8 @@ Unit Test: Verify compute_spectrum for single-tone FFT analysis
 Purpose: Self-verify that compute_spectrum correctly computes spectrum metrics
          including SNR, THD, SFDR, and ENOB for ADC analysis
 """
+import warnings
+
 import pytest
 import numpy as np
 from adctoolbox.spectrum.compute_spectrum import compute_spectrum
@@ -89,7 +91,8 @@ def _run_noise_accuracy_test(A, noise_rms, Fs, Fin_target, max_scale_range=None,
 
     # Generate signal with known noise
     t = np.arange(N) / Fs
-    signal = A * np.sin(2*np.pi*Fin*t) + np.random.randn(N) * noise_rms
+    rng = np.random.default_rng(2026062249)
+    signal = A * np.sin(2*np.pi*Fin*t) + rng.standard_normal(N) * noise_rms
 
     # Compute spectrum (use boxcar window for accurate NSD comparison)
     # Boxcar has ENBW=1.0, so NSD calculation matches theoretical formula
@@ -289,7 +292,8 @@ def test_verify_compute_spectrum_2d_input():
     2. Assert: Averages correctly over runs
     """
     M, N = 3, 512
-    data_2d = 0.4 * np.sin(2*np.pi*0.1*np.arange(N)[np.newaxis, :] + np.random.randn(M, 1) * 0.01)
+    rng = np.random.default_rng(2026062250)
+    data_2d = 0.4 * np.sin(2*np.pi*0.1*np.arange(N)[np.newaxis, :] + rng.standard_normal((M, 1)) * 0.01)
 
     result = compute_spectrum(data_2d, fs=1.0, verbose=0)
 
@@ -340,7 +344,8 @@ def test_verify_compute_spectrum_coherent_vs_power():
     """
     M, N = 2, 512
     t = np.arange(N) / 1000.0
-    data = 0.4 * np.sin(2*np.pi*100*t)[np.newaxis, :] + np.random.randn(M, N) * 0.01
+    rng = np.random.default_rng(2026062251)
+    data = 0.4 * np.sin(2*np.pi*100*t)[np.newaxis, :] + rng.standard_normal((M, N)) * 0.01
     data = np.vstack([data, data])  # 4 runs
 
     result_power = compute_spectrum(data, fs=1000.0, coherent_averaging=False, verbose=0)
@@ -381,6 +386,21 @@ def test_verify_compute_spectrum_noise_floor_methods():
         assert 'noise_floor_dbfs' in result['metrics'], f"Missing noise floor for method {method}"
 
     print(f'  [Status] PASS')
+
+
+def test_auto_noise_floor_method_does_not_warn_on_method_spread():
+    N = 1024
+    sig = 0.4 * np.sin(2*np.pi*0.1*np.arange(N))
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = compute_spectrum(sig, nf_method=0, verbose=0)
+
+    assert 'noise_floor_dbfs' in result['metrics']
+    assert not any(
+        "Noise floor estimation methods differ" in str(warning.message)
+        for warning in caught
+    )
 
 
 def test_verify_compute_spectrum_metrics_structure():

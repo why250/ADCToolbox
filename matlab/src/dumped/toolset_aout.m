@@ -93,13 +93,13 @@ saveas(gcf, plot_files{5});
 close(gcf);
 fprintf(' -> %s\n', plot_files{5});
 
-%% Tool 6: errPDF
-fprintf('[6/9] errPDF');
+%% Tool 6: errpdf
+fprintf('[6/9] errpdf');
 figure('Position', [100, 100, 800, 600], 'Visible', opts.Visible);
 errpdf(err_data, 'Resolution', opts.Resolution, 'FullScale', FullScale);
-title('errPDF: Error PDF');
+title('errpdf: Error PDF');
 set(gca, 'FontSize', 14);
-plot_files{6} = fullfile(outputDir, sprintf('%s_6_errPDF.png', opts.Prefix));
+plot_files{6} = fullfile(outputDir, sprintf('%s_6_errpdf.png', opts.Prefix));
 saveas(gcf, plot_files{6});
 close(gcf);
 fprintf(' -> %s\n', plot_files{6});

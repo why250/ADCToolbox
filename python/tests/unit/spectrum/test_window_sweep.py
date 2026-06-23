@@ -33,6 +33,22 @@ WINDOW_TYPES = [
 ]
 
 
+def _assert_window_sweep_plot(fig, axes, results):
+    assert len(fig.axes) == len(WINDOW_TYPES)
+    assert len(axes) == len(WINDOW_TYPES)
+    assert {result['window'] for result in results} == set(WINDOW_TYPES)
+
+    for ax, win_type in zip(axes, WINDOW_TYPES):
+        assert win_type.capitalize() in ax.get_title()
+        assert len(ax.lines) >= 1
+        assert ax.get_xlabel() == 'Freq (Hz)'
+        assert ax.get_ylabel() == 'dBFS'
+
+    for metric_name in ['enob', 'sndr_dbc', 'sfdr_dbc', 'snr_dbc', 'nsd_dbfs_hz']:
+        assert all(np.isfinite(result[metric_name]) for result in results)
+
+
+@pytest.mark.slow
 def test_window_sweep_coherent():
     """Test all window types with COHERENT signal using default side_bin."""
     # Signal parameters
@@ -56,7 +72,8 @@ def test_window_sweep_coherent():
     # Generate signal with harmonics and noise
     t = np.arange(N_fft) / Fs
     sig_ideal = A * np.sin(2*np.pi*Fin*t)
-    signal = sig_ideal + k2 * sig_ideal**2 + k3 * sig_ideal**3 + np.random.randn(N_fft) * noise_rms
+    rng = np.random.default_rng(2026062252)
+    signal = sig_ideal + k2 * sig_ideal**2 + k3 * sig_ideal**3 + rng.standard_normal(N_fft) * noise_rms
 
     print('\n' + '='*80)
     print('COHERENT SIGNAL - WINDOW SWEEP (Default side_bin)')
@@ -102,7 +119,8 @@ def test_window_sweep_coherent():
     fig_path = output_dir / 'test_window_sweep_coherent_all.png'
     plt.tight_layout()
     plt.savefig(fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+    _assert_window_sweep_plot(fig, axes, results)
+    plt.close(fig)
 
     # Verify file was created
     assert fig_path.exists(), f"Figure file not created: {fig_path}"
@@ -127,6 +145,7 @@ def test_window_sweep_coherent():
     assert hamming_result['enob'] > 9.0, f"Hamming ENOB too low: {hamming_result['enob']:.2f}b (expected >9b)"
 
 
+@pytest.mark.slow
 def test_window_sweep_noncoherent():
     """Test all window types with NON-COHERENT signal using default side_bin."""
     # Signal parameters
@@ -147,7 +166,8 @@ def test_window_sweep_noncoherent():
     # Generate signal with harmonics and noise
     t = np.arange(N_fft) / Fs
     sig_ideal = A * np.sin(2*np.pi*Fin*t)
-    signal = sig_ideal + k2 * sig_ideal**2 + k3 * sig_ideal**3 + np.random.randn(N_fft) * noise_rms
+    rng = np.random.default_rng(2026062253)
+    signal = sig_ideal + k2 * sig_ideal**2 + k3 * sig_ideal**3 + rng.standard_normal(N_fft) * noise_rms
 
     print('\n' + '='*80)
     print('NON-COHERENT SIGNAL - WINDOW SWEEP (Default side_bin)')
@@ -203,7 +223,8 @@ def test_window_sweep_noncoherent():
     fig_path = output_dir / 'test_window_sweep_noncoherent_all.png'
     plt.tight_layout()
     plt.savefig(fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+    _assert_window_sweep_plot(fig, axes, results)
+    plt.close(fig)
 
     # Verify file was created
     assert fig_path.exists(), f"Figure file not created: {fig_path}"
@@ -250,7 +271,8 @@ def test_noise_accuracy_with_windows(win_type):
     # Generate signal with known noise
     t = np.arange(N_fft) / Fs
     sig_ideal = A * np.sin(2*np.pi*Fin*t)
-    signal = sig_ideal + np.random.randn(N_fft) * noise_rms
+    rng = np.random.default_rng(2026062254)
+    signal = sig_ideal + rng.standard_normal(N_fft) * noise_rms
 
     # Calculate theoretical values
     sig_pwr_theory = 0.0  # dBFS (auto-detect uses peak as reference)

@@ -21,8 +21,7 @@ def generate_test_signal():
         signal: Test signal with 4 harmonics + noise
         params: Dictionary of expected values
     """
-    # Set random seed for reproducibility
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
 
     N = 8192           # Number of samples
     Fs = 1e9           # Sampling frequency
@@ -49,7 +48,7 @@ def generate_test_signal():
               A_HD4 * np.sin(2*np.pi*4*Fin*t + phi_HD4))
 
     # Add DC offset and small noise
-    signal = signal + 0.5 + np.random.randn(N) * 1e-5
+    signal = signal + 0.5 + rng.standard_normal(N) * 1e-5
 
     # Calculate maxSignal for normalization (needed for expected values)
     maxSignal = np.max(signal) - np.min(signal)
@@ -76,26 +75,26 @@ def test_verify_spec_plot_phase_fft_mode():
     """
     Verify spec_plot_phase FFT mode correctly processes signal.
 
-    FFT mode should return:
-    - coherent_result dict with spectrum data
-    - plot_data dict
+    FFT mode returns the standard polar spectrum metrics dictionary.
     """
     signal, params = generate_test_signal()
 
     print('\n[Verify spec_plot_phase] [FFT Mode]')
-    coherent_result, plot_data = analyze_spectrum_polar(signal, harmonic=5, create_plot=False)
+    metrics = analyze_spectrum_polar(signal, harmonic=5, create_plot=False)
 
     # Check that FFT mode returns expected values
-    has_complex_spec = 'complex_spec_coherent' in coherent_result
-    has_bin_idx = 'bin_idx' in coherent_result
-    has_minR_dB = 'minR_dB' in coherent_result
+    has_sndr = 'sndr_dbc' in metrics
+    has_sfdr = 'sfdr_dbc' in metrics
+    has_harmonics = 'harmonics_dbc' in metrics
 
-    status = 'PASS' if has_complex_spec and has_bin_idx and has_minR_dB else 'FAIL'
-    print(f'  [complex_spec_coherent=present] [bin_idx=present] [minR_dB=present] [{status}]')
+    status = 'PASS' if has_sndr and has_sfdr and has_harmonics else 'FAIL'
+    print(f'  [sndr_dbc=present] [sfdr_dbc=present] [harmonics_dbc=present] [{status}]')
 
-    assert has_complex_spec, "FFT mode should return complex_spec_coherent"
-    assert has_bin_idx, "FFT mode should return bin_idx"
-    assert has_minR_dB, "FFT mode should return minR_dB"
+    assert has_sndr, "FFT mode should return sndr_dbc"
+    assert has_sfdr, "FFT mode should return sfdr_dbc"
+    assert has_harmonics, "FFT mode should return harmonics_dbc"
+    assert np.isfinite(metrics['sndr_dbc'])
+    assert np.isfinite(metrics['sfdr_dbc'])
 
 
 def test_verify_spec_plot_phase_lms_mode():
@@ -110,12 +109,12 @@ def test_verify_spec_plot_phase_lms_mode():
     signal, params = generate_test_signal()
 
     print('\n[Verify spec_plot_phase] [LMS Mode]')
-    decomp_result, plot_data = analyze_decomposition_polar(signal, harmonic=5, create_plot=False)
+    decomp_result = analyze_decomposition_polar(signal, harmonic=5, create_plot=False)
 
-    harm_phase = decomp_result['harm_phase']
-    harm_mag = decomp_result['harm_mag']
+    harm_phase = decomp_result['phases']
+    harm_mag = decomp_result['magnitudes']
     freq = decomp_result['fundamental_freq']
-    noise_dB = decomp_result['noise_dB']
+    noise_dB = decomp_result['noise_db']
 
     # 1. Verify frequency detection (LMS algorithm has small numerical errors)
     freq_error = abs(freq - params['Fin_normalized'])
@@ -155,23 +154,23 @@ def test_verify_spec_plot_phase_comparison():
     print('\n[Verify spec_plot_phase] [FFT vs LMS]')
 
     # Run both modes
-    coherent_result, plot_data_fft = analyze_spectrum_polar(signal, harmonic=5, create_plot=False)
-    decomp_result, plot_data_lms = analyze_decomposition_polar(signal, harmonic=5, create_plot=False)
+    coherent_result = analyze_spectrum_polar(signal, harmonic=5, create_plot=False)
+    decomp_result = analyze_decomposition_polar(signal, harmonic=5, create_plot=False)
 
-    # FFT mode: returns coherent spectrum data
-    fft_ok = 'complex_spec_coherent' in coherent_result and 'bin_idx' in coherent_result
+    # FFT mode: returns spectrum metrics
+    fft_ok = 'sndr_dbc' in coherent_result and 'sfdr_dbc' in coherent_result
 
     # LMS mode: returns detailed harmonic decomposition
-    lms_ok = (len(decomp_result['harm_phase']) > 0 and
-              len(decomp_result['harm_mag']) > 0 and
+    lms_ok = (len(decomp_result['phases']) > 0 and
+              len(decomp_result['magnitudes']) > 0 and
               'fundamental_freq' in decomp_result and
-              'noise_dB' in decomp_result)
+              'noise_db' in decomp_result)
 
     status = 'PASS' if fft_ok and lms_ok else 'FAIL'
     print(f'  [FFT: has_spectrum={fft_ok}]', end=' ')
-    print(f'[LMS: hp={len(decomp_result["harm_phase"])} hm={len(decomp_result["harm_mag"])}] [{status}]')
+    print(f'[LMS: hp={len(decomp_result["phases"])} hm={len(decomp_result["magnitudes"])}] [{status}]')
 
-    assert fft_ok, "FFT mode should return coherent spectrum data"
+    assert fft_ok, "FFT mode should return spectrum metrics"
     assert lms_ok, "LMS mode should return detailed output"
 
 

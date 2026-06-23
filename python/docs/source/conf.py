@@ -9,6 +9,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../src'))
 
+from adctoolbox import __version__ as adctoolbox_version
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
@@ -16,8 +18,8 @@ project = 'ADCToolbox'
 copyright = '2026, ADCToolbox Contributors'
 author = 'ADCToolbox Contributors'
 
-version = '0.8.1'
-release = '0.8.1'
+version = adctoolbox_version
+release = adctoolbox_version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

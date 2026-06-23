@@ -2,7 +2,7 @@
 common_test_dout; 
 
 %% Calibration Configuration
-Order = 5; % Polynomial order for FGCalSine
+Order = 5; % Polynomial order for wcalsin
 %% Test Loop
 for k = 1:length(filesList)
     currentFilename = filesList{k};
@@ -11,7 +11,7 @@ for k = 1:length(filesList)
 
     bits = readmatrix(dataFilePath);
 
-    weight_cal = wcalsine(bits, 'freq', 0, 'order', Order);
+    weight_cal = wcalsin(bits, 'freq', 0, 'order', Order);
 
     % Run weightScaling tool
     figure('Position', [100, 100, 800, 600], "Visible", verbose);

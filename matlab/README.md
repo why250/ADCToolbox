@@ -7,6 +7,7 @@ A comprehensive MATLAB toolbox for ADC (Analog-to-Digital Converter) testing, ch
 ## Table of Contents
 
 - [Installation](#installation)
+- [Testing](#testing)
 - [Quick Start](#quick-start)
 - [Function Categories](#function-categories)
   - [Spectral Analysis](#spectral-analysis)
@@ -27,7 +28,7 @@ A comprehensive MATLAB toolbox for ADC (Analog-to-Digital Converter) testing, ch
 ### Option 1: Install Toolbox Package (Recommended)
 
 1. Navigate to the `toolbox/` directory
-2. Double-click `ADCToolbox_1v30.mltbx` to install
+2. Double-click `ADCToolbox_1v32.mltbx` to install
 3. The toolbox will be automatically added to your MATLAB path
 4. You can also download this toolbox from [MATLAB Add-Ons](https://www.mathworks.com/matlabcentral/fileexchange/181879-adctoolbox)
 
@@ -45,6 +46,20 @@ savepath  % Optional: save path for future sessions
 % Run the setup script (from the matlab/ directory)
 run('setupLib.m')
 ```
+
+## Testing
+
+MATLAB tests are optional external validation and require a local MATLAB
+installation. From the repository root:
+
+```bash
+python matlab/tests/run_matlab_tests.py all
+```
+
+Use `--matlab-executable`, `ADCTOOLBOX_MATLAB`, or `MATLAB_EXECUTABLE` when
+MATLAB is not on `PATH`. Missing MATLAB returns exit code `77` unless
+`--missing-ok` is passed. See [MATLAB_TESTS_OVERVIEW.md](MATLAB_TESTS_OVERVIEW.md)
+for suite names and CI guidance.
 
 ## Quick Start
 
@@ -117,6 +132,7 @@ Functions for analyzing ADC linearity performance.
 Functions for analyzing noise-shaping ADCs (Delta-Sigma modulators).
 
 - **[`ntfperf`](#ntfperf)** - Analyze noise transfer function performance and SNR improvement
+- **`noiseshape`** - Generate noise-shaped quantized ADC-like output for oversampling examples and testbenches
 
 ### Shortcut Functions
 
@@ -595,6 +611,7 @@ radix = plotwgt(weight);
 **Syntax:**
 ```matlab
 plotres(sig, bits)
+plotres(sig, bits, xyPreset)
 plotres(sig, bits, wgt)
 plotres(sig, bits, wgt, xy)
 plotres(sig, bits, wgt, xy, alpha)
@@ -606,12 +623,17 @@ plotres(sig, bits, 'Name', Value)
 - Residual at stage k = sig - bits(:,1:k) * wgt(1:k)'
 - Translucent markers with automatic or manual alpha control
 - Supports custom bit weights and arbitrary bit-pair selections
+- Built-in `xy` presets: `'sig'`, `'res'`, and `'bit'`
 
 **Parameters:**
 - `sig` - Ideal input signal (N x 1 or 1 x N)
 - `bits` - Raw ADC bit matrix (N x M), MSB first
 - `wgt` - Bit weights (optional, default: binary weights `[2^(M-1), ..., 1]`)
-- `xy` - Bit-pair indices to plot (optional, default: `[(0:(M-1))', ones(M,1)*M]`)
+- `xy` - Bit-pair indices or preset string to plot (optional, default: `'res'`)
+  - `'sig'`: `xy = [zeros(M,1), (1:M)']`
+  - `'res'`: `xy = [(0:(M-1))', ones(M,1)*M]`
+  - `'bit'`: `xy = [(0:M-1)', (1:M)']`
+  - Other string values are invalid and raise an error
 - `alpha` - Marker transparency (optional, default: `'auto'`)
   - `'auto'`: scales as `clamp(1000/N, 0.1, 1)`
   - Numeric scalar in (0, 1]: fixed transparency
@@ -625,8 +647,14 @@ code = round(sig);
 bits = dec2bin(code, M) - '0';
 plotres(sig, bits);
 
+% Use a built-in xy preset
+plotres(sig, bits, 'bit');
+
 % Specific bit pairs with custom transparency
 plotres(sig, bits, 2.^(M-1:-1:0), [2 4; 4 6], 0.3);
+
+% Name-value xy preset with custom transparency
+plotres(sig, bits, 'xy', 'sig', 'alpha', 0.3);
 ```
 
 **See also:** bitchk, plotwgt, plotressin
@@ -647,13 +675,14 @@ plotressin(bits, ..., 'Name', Value)
 **Key Features:**
 - Internally calls `wcalsin` to recover calibrated weights and ideal signal
 - Forwards the reconstructed reference signal (`ideal + offset`) and weights to `plotres`
-- Accepts the same `xy` format as `plotres`
+- Accepts the same numeric `xy` format and preset strings as `plotres`
 - Forwards `freq`, `order`, `verbose` parameters to `wcalsin`
 - Forwards `alpha` parameter to `plotres`
 
 **Parameters:**
 - `bits` - Raw ADC bit matrix (N x M), MSB first
-- `xy` - Bit-pair indices to plot (optional, same format as `plotres`)
+- `xy` - Bit-pair indices or preset string to plot (optional, same format as `plotres`; default: `'res'`)
+- `'xy'` - Name-value form of `xy`, also accepts `'sig'`, `'res'`, and `'bit'`
 - `'freq'` - Normalized input frequency for `wcalsin` (default: 0 for auto)
 - `'order'` - Number of harmonics in fitting model (default: 1)
 - `'verbose'` - Verbose output flag (default: 0)
@@ -670,6 +699,12 @@ plotressin(bits)
 
 % Specific bit pairs with known frequency
 plotressin(bits, [0 6; 3 6], 'freq', 3/1024)
+
+% Use a built-in xy preset
+plotressin(bits, 'sig')
+
+% Name-value xy preset
+plotressin(bits, 'xy', 'bit', 'alpha', 0.3)
 
 % Forward calibration parameters
 plotressin(bits, 'order', 3)
@@ -813,6 +848,7 @@ sig = sin(2*pi*0.12345*(0:999)') + 0.01*randn(1000,1);
 - Automatic frequency detection if not specified
 - Decomposes into: fundamental + harmonics + residual
 - Configurable harmonic order (default: 10)
+- Display mode plots harmonics in red and other residuals in blue
 
 **Decomposition:**
 - `sig = sine + err`
@@ -939,10 +975,11 @@ bitchk(bits, 'name', value)
 - Detects overflow (≥1) and underflow (≤0) conditions
 - Color-coded visualization: blue (normal), red (overflow), yellow (underflow)
 - Shows percentage of samples at boundaries
+- Accepts bit-weight vectors as either row or column vectors
 
 **Parameters:**
 - `bits` - Raw ADC bit matrix [MSB ... LSB] (N×M)
-- `wgt` - Bit weights (default: binary weights)
+- `wgt` - Bit weights (default: binary weights; accepts 1-by-M rows or M-by-1 columns)
 - `chkpos` - Bit position to check (default: MSB)
 
 **Example:**
@@ -954,6 +991,9 @@ bitchk(bits);
 % Custom weights and check position
 wgt = 2.^(9:-1:0);
 bitchk(bits, wgt, 8);  % Check segment from 8th-bit to LSB
+
+% Column-vector weights are accepted
+bitchk(bits, wgt.', 8);
 ```
 
 ## Usage Examples
@@ -1151,6 +1191,7 @@ The `legacy/` directory contains older function names for backward compatibility
 | `findBin.m` | `findbin.m` | Coherent bin finder |
 | `findFin.m` | `findfreq.m` | Frequency finder |
 | `FGCalSine.m` | `wcalsin.m` | Weight calibration |
+| `wcalsine.m` | `wcalsin.m` | Weight calibration (old spelling) |
 | `cap2weight.m` | `cdacwgt.m` | CDAC weight calculator |
 | `weightScaling.m` | `plotwgt.m` | Weight visualization |
 | `INLsine.m` | `inlsin.m` | INL/DNL analysis |
@@ -1159,6 +1200,7 @@ The `legacy/` directory contains older function names for backward compatibility
 | `tomDecomp.m` | `tomdec.m` | Thompson decomposition |
 | `NTFAnalyzer.m` | `ntfperf.m` | NTF performance |
 | `overflowChk.m` | `bitchk.m` | Overflow checker |
+| `ovfchk.m` | `bitchk.m` | Overflow checker (short legacy name) |
 | `bitInBand.m` | N/A | Bits-wise filter (deprecated) |
 
 **Note:** It's recommended to use the new function names in new code. Legacy functions are provided for compatibility only.
@@ -1208,6 +1250,7 @@ matlab/
 │   │   ├── findBin.m
 │   │   ├── findFin.m
 │   │   ├── FGCalSine.m
+│   │   ├── wcalsine.m
 │   │   ├── cap2weight.m
 │   │   ├── weightScaling.m
 │   │   ├── INLsine.m
@@ -1216,11 +1259,14 @@ matlab/
 │   │   ├── tomDecomp.m
 │   │   ├── NTFAnalyzer.m
 │   │   ├── overflowChk.m
+│   │   ├── ovfchk.m
 │   │   └── bitInBand.m
 │   └── toolbox.ignore
 ├── toolbox/                 # Packaged toolbox files
-│   ├── ADCToolbox_1v30.mltbx  # Latest toolbox package
-│   ├── ADCToolbox_1v21.mltbx  # Previous versions
+│   ├── ADCToolbox_1v32.mltbx  # Latest toolbox package
+│   ├── ADCToolbox_1v31.mltbx  # Previous versions
+│   ├── ADCToolbox_1v30.mltbx
+│   ├── ADCToolbox_1v21.mltbx
 │   ├── ADCToolbox_1v2.mltbx
 │   ├── ADCToolbox_1v1.mltbx
 │   ├── ADCToolbox_1v0.mltbx
@@ -1331,7 +1377,24 @@ Contributions are welcome! Please follow these guidelines:
 
 ## Version History
 
-- **v1.30** (Current, 2026-02-09)
+- **Source update** (2026-06-11)
+  - Added `noiseshape` — a lightweight helper for generated or input-driven
+    noise-shaped quantization signals with default `(1 - z^-1)^order` NTFs or
+    custom NTF coefficients.
+  - Added `tests/common/test_noiseshape.m` and wired it into `run_common.m`.
+  - The latest packaged `.mltbx` remains `ADCToolbox_1v32.mltbx`; install
+    from source to use this new helper until the next packaged toolbox release.
+
+- **v1.32** (Current, 2026-05-29)
+  - Updated packaged toolbox file to `ADCToolbox_1v32.mltbx`
+  - (v1.31 update, included in v1.32) Improved `plotspec` median/mean noise-floor estimation for highly non-coherent signals by excluding near-zero in-band bins and scaling with `inbandEnd`
+  - Added `xy` preset strings for `plotres` and `plotressin`: `'sig'`, `'res'`, and `'bit'`
+  - Added validation so unsupported `xy` string inputs raise clear errors
+  - Preserved numeric `xy` selections and added name-value `xy` preset support
+  - Updated `bitchk` to accept row or column bit-weight vectors
+  - Changed the displayed `tomdec` other-residual trace color to blue
+
+- **v1.30** (2026-02-09)
   - Added `plotres` and `plotressin` functions with translucent scatter plots
   - Added integer vector to binary decomposition for `bits` dataType in `adcpanel`
   - Added bounds protection for trimmed mean indexing in `plotspec`
@@ -1371,7 +1434,7 @@ Contributions are welcome! Please follow these guidelines:
   - Added LMS-based phase plot algorithm
 
 - **v0.12** (2025-11-26)
-  - Function renaming: `cap2weight`→`cdacwgt`, `findBin`→`findbin`, `sineFit`→`sinefit`, `findFin`→`findfreq`, `tomDecomp`→`tomdec`, `NTFAnalyzer`→`ntfperf`, `overflowChk`→`ovfchk`, `FGCalSine`→`wcalsine`, `bitInBand`→`ifilter`, `INLsine`→`inlsine`
+  - Function renaming: `cap2weight`→`cdacwgt`, `findBin`→`findbin`, `sineFit`→`sinefit`, `findFin`→`findfreq`, `tomDecomp`→`tomdec`, `NTFAnalyzer`→`ntfperf`, `overflowChk`→`ovfchk`, `FGCalSine`→`wcalsin`, `bitInBand`→`ifilter`, `INLsine`→`inlsine`
   - Added comprehensive documentation for renamed functions
   - Added legacy wrappers for all renamed functions
   - Added `bitActivity` tool and `ENoB_bitsweep` tool

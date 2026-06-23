@@ -2,7 +2,7 @@
 common_test_dout;
 
 %% Calibration Configuration
-Order = 5;  % Polynomial order for FGCalSine
+Order = 5;  % Polynomial order for wcalsin
 
 %% Test Loop
 for k = 1:length(filesList)

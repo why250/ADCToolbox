@@ -3,6 +3,6 @@
 run_bitact
 run_wscaling
 
-run_wcalsine
+run_wcalsin
 run_bitsweep
 run_ovfchk

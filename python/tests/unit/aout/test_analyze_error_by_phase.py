@@ -23,6 +23,7 @@ def test_analyze_error_by_phase_pure_cases():
     A = 0.49
     DC = 0.5
     phase_clean = 2 * np.pi * Fin * t
+    rng = np.random.default_rng(2026062210)
 
     print(f"\n[Config] Fs={Fs/1e6:.0f} MHz, Fin={Fin/1e6:.2f} MHz, N={N}, A={A}")
 
@@ -38,9 +39,9 @@ def test_analyze_error_by_phase_pure_cases():
 
     # Generate signals
     for case in test_cases:
-        am_noise = np.random.randn(N) * case['am'] if case['am'] > 0 else 0
-        pm_noise = np.random.randn(N) * case['pm'] / A if case['pm'] > 0 else 0
-        th_noise = np.random.randn(N) * case['thermal'] if case['thermal'] > 0 else 0
+        am_noise = rng.standard_normal(N) * case['am'] if case['am'] > 0 else 0
+        pm_noise = rng.standard_normal(N) * case['pm'] / A if case['pm'] > 0 else 0
+        th_noise = rng.standard_normal(N) * case['thermal'] if case['thermal'] > 0 else 0
         case['signal'] = (A + am_noise) * np.sin(phase_clean + pm_noise) + DC + th_noise
 
     # Test both baseline modes
@@ -93,6 +94,7 @@ def test_analyze_error_by_phase_mixed_cases():
     A = 0.49
     DC = 0.5
     phase_clean = 2 * np.pi * Fin * t
+    rng = np.random.default_rng(2026062211)
 
     # Define mixed test cases
     test_cases = [
@@ -106,9 +108,9 @@ def test_analyze_error_by_phase_mixed_cases():
 
     # Generate signals
     for case in test_cases:
-        am_noise = np.random.randn(N) * case['am'] if case['am'] > 0 else 0
-        pm_noise = np.random.randn(N) * case['pm'] / A if case['pm'] > 0 else 0
-        th_noise = np.random.randn(N) * case['thermal'] if case['thermal'] > 0 else 0
+        am_noise = rng.standard_normal(N) * case['am'] if case['am'] > 0 else 0
+        pm_noise = rng.standard_normal(N) * case['pm'] / A if case['pm'] > 0 else 0
+        th_noise = rng.standard_normal(N) * case['thermal'] if case['thermal'] > 0 else 0
         case['signal'] = (A + am_noise) * np.sin(phase_clean + pm_noise) + DC + th_noise
 
     fig, axes = plt.subplots(1, 3, figsize=(18, 8))
@@ -144,23 +146,33 @@ def test_analyze_error_by_phase_mixed_cases():
 
 @pytest.mark.parametrize("n_bins", [50, 100, 200])
 def test_analyze_error_by_phase_bin_count(n_bins):
-    """Test analyze_error_by_phase with different bin counts."""
+    """Test analyze_error_by_phase output stability with different bin counts."""
     N = 2**14
     Fs = 800e6
     Fin = 10.1234567e6
     t = np.arange(N) / Fs
     A = 0.49
     DC = 0.5
+    rng = np.random.default_rng(42)
 
     # Simple thermal noise case
     thermal_noise = 50e-6
-    signal = A * np.sin(2 * np.pi * Fin * t) + DC + np.random.randn(N) * thermal_noise
+    signal = A * np.sin(2 * np.pi * Fin * t) + DC + rng.normal(0.0, thermal_noise, N)
 
-    # Just run the analysis
+    # Pure thermal noise is flat versus phase, so r_squared_binned is not a
+    # useful quality gate at high bin counts. Check the structural contract and
+    # recovered noise level instead.
     results = analyze_error_by_phase(signal, n_bins=n_bins, include_base_noise=True, create_plot=False)
 
-    assert results['r_squared_binned'] > 0.5, f"R² too low with {n_bins} bins: {results['r_squared_binned']:.3f}"
-    print(f"\n[Bin Count={n_bins}] R²={results['r_squared_binned']:.3f} -> [PASS]")
+    assert results['bin_error_rms_v'].shape == (n_bins,)
+    assert results['phase_bin_centers_rad'].shape == (n_bins,)
+    assert np.all(results['bin_counts'] > 0)
+    assert np.isfinite(results['r_squared_binned'])
+    assert results['total_rms_v'] == pytest.approx(thermal_noise, rel=0.12)
+    print(
+        f"\n[Bin Count={n_bins}] R²={results['r_squared_binned']:.3f}, "
+        f"total_rms={results['total_rms_v']:.2e} -> [PASS]"
+    )
 
 
 if __name__ == '__main__':

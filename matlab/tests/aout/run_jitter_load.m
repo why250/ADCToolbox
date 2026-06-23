@@ -1,4 +1,5 @@
-%% test_jitter_load.m - Unit test for jitter analysis
+%% run_jitter_load.m - Unit test for jitter analysis
+run(fullfile(fileparts(mfilename('fullpath')), '..', 'utils', 'ensureMatlabRoot.m'));
 close all; clear; clc; warning("off")
 
 %% Configuration
@@ -10,7 +11,7 @@ if ~exist(outputDir, 'dir'), mkdir(outputDir); end
 
 config_filepath = fullfile(inputDir, 'config.csv');
 if ~exist(config_filepath, 'file')
-    error('[Config file not found] Please run generate_jitter_sweep_data.m first');
+    error('[Config file not found] Please run gen_jitter_sweep_data.m first');
 end
 
 config_data = readcell(config_filepath);

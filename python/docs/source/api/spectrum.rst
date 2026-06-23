@@ -9,8 +9,13 @@ Single-Tone Spectrum
 --------------------
 
 .. autofunction:: analyze_spectrum
+.. autofunction:: analyze_spectrum_virtuoso
+.. autofunction:: extract_freq_components
+.. autofunction:: quick_sndr
+.. autofunction:: sweep_performance_vs_osr
 .. autofunction:: adctoolbox.spectrum.compute_spectrum
 .. autofunction:: adctoolbox.spectrum.plot_spectrum
+.. autofunction:: adctoolbox.spectrum.plot_spectrum_virtuoso
 
 Polar Spectrum Plots
 --------------------

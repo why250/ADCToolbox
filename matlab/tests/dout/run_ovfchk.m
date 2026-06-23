@@ -10,8 +10,8 @@ for k = 1:length(filesList)
     read_data = readmatrix(dataFilePath);
     [~, datasetName, ~] = fileparts(currentFilename);
 
-    % Run wcalsine to get calibrated weights
-    [weights_cal, ~, ~, ~, ~, ~] = wcalsine(read_data);
+    % Run wcalsin to get calibrated weights
+    [weights_cal, ~, ~, ~, ~, ~] = wcalsin(read_data);
 
     % Run ovfchk and get overflow statistics
     [range_min, range_max, ovf_percent_zero, ovf_percent_one] = ovfchk(read_data, weights_cal);

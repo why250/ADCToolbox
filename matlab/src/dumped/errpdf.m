@@ -1,4 +1,4 @@
-function [noise_lsb, mu, sigma, KL_divergence, x, fx, gauss_pdf] = errPDF(err_data, varargin)
+function [noise_lsb, mu, sigma, KL_divergence, x, fx, gauss_pdf] = errpdf(err_data, varargin)
 
 p = inputParser;
 addParameter(p, "Resolution", 12);

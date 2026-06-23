@@ -241,14 +241,14 @@ msgstr ""
 
 #: ../../source/algorithms/analyze_error_pdf.md:124
 msgid ""
-"[`analyze_error_autocorr`](analyze_error_autocorr.md) — Temporal "
-"correlation in errors"
+"[`analyze_error_autocorr`](analyze_error_autocorr.md) — Temporal correlation "
+"in errors"
 msgstr ""
 
 #: ../../source/algorithms/analyze_error_pdf.md:125
 msgid ""
-"[`analyze_error_spectrum`](analyze_error_spectrum.md) — Frequency content"
-" of errors"
+"[`analyze_error_spectrum`](analyze_error_spectrum.md) — Frequency content of "
+"errors"
 msgstr ""
 
 #: ../../source/algorithms/analyze_error_pdf.md:126
@@ -267,7 +267,6 @@ msgstr ""
 
 #: ../../source/algorithms/analyze_error_pdf.md:131
 msgid ""
-"S. Kullback and R. A. Leibler, \"On Information and Sufficiency,\" Annals"
-" of Mathematical Statistics, 1951"
+"S. Kullback and R. A. Leibler, \"On Information and Sufficiency,\" Annals of "
+"Mathematical Statistics, 1951"
 msgstr ""
-

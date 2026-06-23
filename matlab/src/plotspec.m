@@ -535,8 +535,14 @@ if(dispPlot && label && show_p)
 end
 
 % Calculate noise floor using all methods and select per NFMethod
-n_inband = inbandEnd;
-spec_inband = spec(1:n_inband);
+spec_inband_all = spec(1:inbandEnd);
+
+spec_inband = spec_inband_all(abs(spec_inband_all) > 1E-20);    % exclude zeros while estimating noisefloor
+if isempty(spec_inband)
+    spec_inband = spec_inband_all;
+end
+n_inband = length(spec_inband);
+
 % Method 1: Median-based estimation (robust to spurs)
 if(N_run == 1)
     % Mn = 0.4549364231; % theoretical value of the median of chi-squared distribution, but not working well
@@ -544,28 +550,21 @@ if(N_run == 1)
 else
     Mn = (1-2/(9*N_run))^3;     % Wilson–Hilferty approximation of the median of chi-squared distribution
 end
-noi_median = median(spec_inband)/Mn * n_inband;
+noi_median = median(spec_inband)/Mn * inbandEnd;
 % Method 2: Trimmed mean (removes top/bottom 5%)
 spec_sort = sort(spec_inband);
-noi_mean = mean(spec_sort(max(1,floor(n_inband*0.05)):max(1,floor(n_inband*0.95)))) * n_inband;
+noi_mean = mean(spec_sort(max(1,floor(n_inband*0.05)):max(1,floor(n_inband*0.95)))) * inbandEnd;
 % Method 3: Exclude harmonics from noise calculation
 spec_noise = spec;
 for i = 2:nTHD
     b = alias(round((bin_r-1)*i),N_fft) +1;
     spec_noise(b) = 0;
 end
-noi_exclude = sum(spec_noise(1:n_inband));
+noi_exclude = sum(spec_noise(1:inbandEnd));
 
 if(nfmethod == 0)
     % Auto: median of all methods
     noi = median([noi_median, noi_mean, noi_exclude]);
-    % Warn if results differ significantly (>25% or ~1dB)
-    noi_all = [noi_median, noi_mean, noi_exclude];
-    if max(noi_all) / min(noi_all) > 1.25
-        warning('plotspec:irregularNoiseFloor', ...
-            'Noise floor estimation methods differ by %.1f dB. The noise floor may be irregular. Consider manually selecting NFMethod (''median'', ''mean'', or ''exclude'').', ...
-            10*log10(max(noi_all) / min(noi_all)));
-    end
 elseif(nfmethod == 1)
     noi = noi_median;
 elseif(nfmethod == 2)
